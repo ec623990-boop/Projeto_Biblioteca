@@ -1,0 +1,125 @@
+/* Fonte moderna */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f6f9;
+}
+
+/* Card padrão */
+.card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+
+/* Inputs */
+input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #d0d7e2;
+    font-size: 15px;
+}
+
+input:focus, select:focus {
+    border-color: #4A90E2;
+    outline: none;
+}
+
+/* Botão moderno */
+.btn {
+    padding: 12px 18px;
+    background: #4A90E2;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #3478c0;
+}
+
+/* Títulos */
+h1, h2 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* Navegação superior */
+.navbar {
+    background: #4A90E2;
+    padding: 15px 25px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Links */
+a {
+    text-decoration: none;
+}
+
+.menu-link {
+    display: block;
+    background: #4A90E2;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+}
+
+.menu-link:hover {
+    background: #367ac0;
+}
+
+/* Grid moderno */
+.grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Cards do dashboard */
+.dashboard-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.dashboard-card i {
+    font-size: 35px;
+    color: #4A90E2;
+}
+
+.dashboard-card h3 {
+    margin: 0;
+}
+
+/* Erro */
+.erro {
+    background: #ffe0e0;
+    padding: 12px;
+    border-radius: 10px;
+    color: #b10000;
+    border-left: 5px solid #b10000;
+    margin-bottom: 20px;
+}
