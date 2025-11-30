@@ -1,164 +1,77 @@
 <?php
+// pages/painel.php
 session_start();
-require_once __DIR__ . "/../config/conf.php";
-
-// Se não estiver logado, redireciona
 if (!isset($_SESSION['email'])) {
-    header("Location: login.php");
+    header("Location: ../pages/login.php");
     exit;
 }
+require_once __DIR__ . "/../config/conf.php"; // ajusta caminho se necessário
 
-$usuarioLogado = $_SESSION['nome'];
-$emailLogado   = $_SESSION['email'];
+$totLivros = $pdo->query("SELECT COUNT(*) FROM livros")->fetchColumn();
+$totUsuarios = $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
+$livrosDisponiveis = $pdo->query("SELECT COUNT(*) FROM livros WHERE (status IS NULL OR status = 'disponivel')")->fetchColumn();
+$livrosEmprestados = $pdo->query("SELECT COUNT(*) FROM emprestimos WHERE status = 'emprestado'")->fetchColumn();
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-
 <head>
-<meta charset="UTF-8">
-<title>Painel - Sistema Biblioteca</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel - Biblioteca</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
-    body {
-        margin: 0;
-        font-family: "Poppins", sans-serif;
-        background: #f5f6fa;
-        display: flex;
-    }
-
-    /* MENU LATERAL */
-    .sidebar {
-        width: 240px;
-        background: #274B73;
-        color: white;
-        height: 100vh;
-        position: fixed;
-        padding-top: 30px;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.15);
-    }
-
-    .sidebar h2 {
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 22px;
-    }
-
-    .sidebar a {
-        display: block;
-        padding: 15px 20px;
-        text-decoration: none;
-        color: white;
-        font-size: 16px;
-        transition: .3s;
-    }
-
-    .sidebar a:hover {
-        background: rgba(255,255,255,0.15);
-    }
-
-    /* CONTEÚDO */
-    .content {
-        margin-left: 240px;
-        padding: 25px;
-        width: calc(100% - 240px);
-    }
-
-    .topbar {
-        background: #3A6EA5;
-        padding: 15px 22px;
-        border-radius: 10px;
-        margin-bottom: 25px;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    .card-box {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-    }
-
-    .card {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        transition: .3s;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
-    }
-
-    .card h3 {
-        margin: 0;
-        color: #274B73;
-        font-size: 22px;
-    }
-
-    .card p {
-        margin-top: 10px;
-        color: #444;
-        font-size: 16px;
-    }
+    body{font-family:Poppins,Arial;background:#eef3f7;margin:0;padding:30px;}
+    .wrap{max-width:1200px;margin:0 auto}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+    .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px}
+    .card .num{font-size:32px;color:#244673;font-weight:700}
+    .card .label{color:#666}
+    .card .small{font-size:13px;color:#999}
+    .panel-actions{display:flex;gap:8px}
+    .btn{padding:8px 12px;border-radius:8px;background:#3A6EA5;color:#fff;text-decoration:none}
+    .btn.secondary{background:#b34646}
 </style>
 </head>
-
 <body>
-
-<!-- MENU LATERAL -->
-<div class="sidebar">
-    <h2>Biblioteca</h2>
-
-    <a href="home.php">🏠 Início</a>
-    <a href="cadastro_usuario.php">👤 Usuários</a>
-    <a href="cadastrar_livro.php">📚 Cadastrar Livro</a>
-    <a href="livros.php">📖 Acervo de Livros</a>
-    <a href="emprestimos.php">🔄 Empréstimos</a>
-    <a href="logout.php">🚪 Sair</a>
-</div>
-
-<!-- CONTEÚDO PRINCIPAL -->
-<div class="content">
-
-    <div class="topbar">
-        <div>
-            <strong>Bem-vindo, <?= $usuarioLogado ?> 👋</strong><br>
-            <small><?= $emailLogado ?></small>
+<div class="wrap">
+    <div class="top">
+        <h1>Painel</h1>
+        <div class="panel-actions">
+            <a class="btn" href="home.php">Início</a>
+            <a class="btn" href="livros.php">Acervo</a>
+            <a class="btn" href="emprestimos.php">Empréstimos</a>
         </div>
-        <a href="logout.php" style="color:white; text-decoration:none; font-weight:bold;">Sair</a>
     </div>
 
-    <h2>📌 Visão Geral</h2>
-
-    <div class="card-box">
-
-        <div class="card" onclick="window.location='cadastro_usuario.php'">
-            <h3>Usuários</h3>
-            <p>Gerencie leitores e funcionários.</p>
+    <div class="card-grid">
+        <div class="card">
+            <div class="label">Livros cadastrados</div>
+            <div class="num"><?= (int)$totLivros ?></div>
+            <div class="small">Total de títulos no acervo</div>
         </div>
 
-        <div class="card" onclick="window.location='cadastrar_livro.php'">
-            <h3>Livros</h3>
-            <p>Cadastre, edite e visualize o acervo.</p>
+        <div class="card">
+            <div class="label">Usuários</div>
+            <div class="num"><?= (int)$totUsuarios ?></div>
+            <div class="small">Contagem de usuários cadastrados</div>
         </div>
 
-        <div class="card" onclick="window.location='emprestimos.php'">
-            <h3>Empréstimos</h3>
-            <p>Controle entradas e devoluções.</p>
+        <div class="card">
+            <div class="label">Livros disponíveis</div>
+            <div class="num"><?= (int)$livrosDisponiveis ?></div>
+            <div class="small">Títulos que podem ser emprestados</div>
         </div>
 
+        <div class="card">
+            <div class="label">Livros emprestados</div>
+            <div class="num"><?= (int)$livrosEmprestados ?></div>
+            <div class="small">Quantidade atualmente emprestada</div>
+        </div>
     </div>
 
+    <!-- Você pode adicionar gráficos aqui (Charts) futuramente -->
 </div>
-
 </body>
 </html>
 

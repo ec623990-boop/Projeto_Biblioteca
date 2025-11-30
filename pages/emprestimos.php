@@ -7,10 +7,17 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
-// Caminho correto
-require_once "../config/conf.php";
+// Carrega a conexão PDO corretamente
+require_once __DIR__ . "/../config/conf.php";
 
-// --- Registrar Empréstimo ---
+// Verifica se a variável $pdo foi criada
+if (!isset($pdo)) {
+    die("❌ ERRO FATAL: a conexão PDO não foi criada pelo conf.php");
+}
+
+// ---------------------------------------------------------
+//  REGISTRAR EMPRÉSTIMO
+// ---------------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_livro"], $_POST["id_usuario"])) {
 
     $idLivro = intval($_POST["id_livro"]);
@@ -18,36 +25,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_livro"], $_POST["i
     $dataEmprestimo = date("Y-m-d");
     $status = "emprestado";
 
-    // Registrar empréstimo
-    $sql = $pdo->prepare("
-        INSERT INTO emprestimos (id_livro, id_usuario, data_emprestimo, status)
-        VALUES (?, ?, ?, ?)
-    ");
-    $sql->execute([$idLivro, $idUsuario, $dataEmprestimo, $status]);
+    try {
+        // Registrar empréstimo
+        $sql = $pdo->prepare("
+            INSERT INTO emprestimos (id_livro, id_usuario, data_emprestimo, status)
+            VALUES (?, ?, ?, ?)
+        ");
+        $sql->execute([$idLivro, $idUsuario, $dataEmprestimo, $status]);
 
-    // Atualizar status do livro
-    $pdo->prepare("UPDATE livros SET status = 'emprestado' WHERE id = ?")
-        ->execute([$idLivro]);
+        // Atualizar status do livro
+        $pdo->prepare("UPDATE livros SET status = 'emprestado' WHERE id = ?")
+            ->execute([$idLivro]);
 
-    header("Location: emprestimos.php?sucesso=1");
-    exit;
+        header("Location: emprestimos.php?sucesso=1");
+        exit;
+
+    } catch (PDOException $e) {
+        die("Erro ao registrar empréstimo: " . $e->getMessage());
+    }
 }
 
-// Buscar livros disponíveis
+// ---------------------------------------------------------
+//  BUSCAR LISTA DE LIVROS DISPONÍVEIS
+// ---------------------------------------------------------
 $livros = $pdo->query("
     SELECT * FROM livros
     WHERE status IS NULL OR status = 'disponivel'
     ORDER BY titulo ASC
 ");
 
-// Buscar usuários
+// ---------------------------------------------------------
+//  BUSCAR LISTA DE USUÁRIOS
+// ---------------------------------------------------------
 $usuarios = $pdo->query("
     SELECT id, nome FROM usuarios ORDER BY nome ASC
 ");
 
-// Buscar empréstimos
+// ---------------------------------------------------------
+//  BUSCAR LISTA DE EMPRÉSTIMOS
+// ---------------------------------------------------------
 $listaEmprestimos = $pdo->query("
-    SELECT e.*, l.titulo AS livro, u.nome AS usuario
+    SELECT e.*, 
+           l.titulo AS livro, 
+           u.nome AS usuario
     FROM emprestimos e
     JOIN livros l ON e.id_livro = l.id
     JOIN usuarios u ON e.id_usuario = u.id
@@ -80,6 +100,7 @@ $listaEmprestimos = $pdo->query("
             border-radius: 10px;
             box-shadow: 0 3px 8px rgba(0,0,0,0.3);
         }
+        
 
         .btn-home:hover {
             background: #1d3a5c;
@@ -176,25 +197,13 @@ $listaEmprestimos = $pdo->query("
 </head>
 
 <body>
-<!-- 🔥 BOTÃO HOME -->
-<a class="btn-home" href="/Bibioteca nova/pages/home.php" 
-   style="
-      display:inline-block;
-      background:#244673;
-      color:white;
-      padding:10px 10px;
-      border-radius:6px;
-      text-decoration:none;
-      margin:12px 2;
-      font-weight:bold;
-   ">
-   🏠 Início  
-</a>
-<br>
-<br>
+
+<!-- BOTÃO HOME -->
+<a class="btn-home" href="/Bibioteca nova/pages/home.php">🏠 Início</a>
 
 <div class="container">
 
+    <!-- FORMULÁRIO DE EMPRÉSTIMO -->
     <div class="card">
         <h2>Registrar Empréstimo</h2>
 
@@ -226,11 +235,11 @@ $listaEmprestimos = $pdo->query("
         <?php endif; ?>
     </div>
 
+    <!-- LISTA DE EMPRÉSTIMOS -->
     <div class="card">
         <h2>Empréstimos Registrados</h2>
 
         <?php if ($listaEmprestimos->rowCount() > 0): ?>
-
         <table>
             <tr>
                 <th>ID</th>
