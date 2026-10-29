@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
 
 // Verifica login
 if (!isset($_SESSION['email'])) {
@@ -125,7 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             <input type="text" name="autor" value="<?= htmlspecialchars($livro['autor']) ?>" required>
 
             <label>Categoria</label>
-            <input type="text" name="categoria" value="<?= htmlspecialchars($livro['categoria']) ?>" required>
+            <input type="text" name="categoria" value="<?= htmlspecialchars($livro['categoria'] ?? '') ?>" required>
+
+            <label>Preço (R$)</label>
+            <input type="number" name="preco" min="0" step="0.01" value="<?= htmlspecialchars((string) ($livro['preco'] ?? '')) ?>" required>
 
             <div class="row">
                 <div class="col">
@@ -163,20 +167,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $categoria = trim($_POST['categoria']);
     $ano = intval($_POST['ano']);
     $quantidade = intval($_POST['quantidade']);
+    $preco = filter_var($_POST['preco'] ?? '', FILTER_VALIDATE_FLOAT);
 
-    if ($id <= 0 || $titulo === "" || $autor === "") {
+    if ($id <= 0 || $titulo === "" || $autor === "" || $preco === false || $preco < 0) {
         header("Location: ../pages/livros.php?erro=dados_invalidos");
         exit;
     }
 
     $stmt = $pdo->prepare("
         UPDATE livros 
-        SET titulo=?, autor=?, categoria=?, ano=?, quantidade=?
+        SET titulo=?, autor=?, categoria=?, ano=?, quantidade=?, preco=?
         WHERE id=?
     ");
 
     $ok = $stmt->execute([
-        $titulo, $autor, $categoria, $ano, $quantidade, $id
+        $titulo, $autor, $categoria, $ano, $quantidade, $preco, $id
     ]);
 
     if ($ok) {

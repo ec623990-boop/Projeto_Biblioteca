@@ -1,182 +1,25 @@
-<?php 
-session_start();
-if (!isset($_SESSION['email'])) {
-    header("Location: login.php");
-    exit;
-}
+<?php
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
+require_once __DIR__ . '/../config/conf.php';
 
-// -----------------------------------------------------------
-//  CONEXÃO PDO
-// -----------------------------------------------------------
-require_once "../config/conf.php";
-
-try {
-    $stmt = $pdo->query("SELECT * FROM livros ORDER BY id DESC");
-    $livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Exception $e) {
-    die("Erro ao buscar livros: " . $e->getMessage());
-}
+$stmt = $pdo->query('SELECT id, titulo, autor, ano, categoria, quantidade, preco FROM livros ORDER BY id DESC');
+$livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livros • Biblioteca</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #eef2f7;
-            margin: 0;
-        }
-
-        .btn-home {
-            display: inline-block;
-            background: #244673;
-            color: white;
-            padding: 10px 10px;
-            border-radius: 6px;
-            text-decoration: none;
-            margin: 12px 12px;
-            font-weight: bold;
-        }
-
-        .container {
-            width: 90%;
-            margin: 30px auto;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #244673;
-            font-size: 26px;
-            font-weight: bold;
-            border-left: 6px solid #244673;
-            padding-left: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 18px;
-        }
-
-        table th {
-            background: #244673;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-size: 15px;
-        }
-
-        table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            background: #fafafa;
-        }
-
-        .btn {
-            padding: 8px 14px;
-            background: #244673;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: 0.2s;
-            font-size: 14px;
-        }
-
-        .btn:hover {
-            background: #1d3a5c;
-        }
-
-        .btn-danger {
-            background: #b32626;
-        }
-
-        .btn-danger:hover {
-            background: #8a1d1d;
-        }
-
-        .actions a {
-            margin-right: 8px;
-        }
-
-    </style>
-</head>
-
-<body>
-
-<!-- 🔥 BOTÃO HOME -->
-<a class="btn-home" href="../pages/home.php">🏠 Início</a>
-
-<div class="container">
-    <div class="card">
-
-        <a href="cadastrar_livro.php" class="btn">Cadastrar Novo Livro</a>
-        <br><br>
-
-        <h2>Lista de Livros</h2>
-
-        <?php if (empty($livros)): ?>
-            <p>Nenhum livro cadastrado.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Autor</th>
-                        <th>Ano</th>
-                        <th>Categoria</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                <?php foreach ($livros as $livro): ?>
-                    <tr>
-                        <td><?= $livro['id'] ?></td>
-                        <td><?= htmlspecialchars($livro['titulo']) ?></td>
-                        <td><?= htmlspecialchars($livro['autor']) ?></td>
-                        <td><?= htmlspecialchars($livro['ano']) ?></td>
-                        <td><?= htmlspecialchars($livro['categoria']) ?></td>
-
-                        <td class="actions">
-
-                            <!-- 🔧 EDITAR -->
-                            <a class="btn" 
-                               href="../actions/editar_livro.php?id=<?= $livro['id'] ?>">
-                                Editar
-                            </a>
-
-                            <!-- ❌ EXCLUIR (OPÇÃO 2) -->
-                            <a class="btn btn-danger"
-                               href="../actions/deletar_livro.php?id=<?= $livro['id'] ?>"
-                               onclick="return confirm('Tem certeza que deseja excluir este livro?')">
-                                Excluir
-                            </a>
-
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-
-            </table>
-        <?php endif; ?>
-
-    </div>
-</div>
-
-</body>
-</html>
-
-
-
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Acervo • Biblioteca</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eef2f7;margin:0;color:#1f2937}.container{width:min(96%,1100px);margin:30px auto}.card{background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 18px #0002}
+h1{color:#244673}.btn{display:inline-block;padding:8px 12px;background:#244673;color:#fff;border-radius:6px;text-decoration:none;border:0;cursor:pointer}.del{background:#a52727}
+table{width:100%;border-collapse:collapse;margin-top:18px}th,td{padding:10px;text-align:left;border-bottom:1px solid #ddd}th{background:#244673;color:#fff}.actions{white-space:nowrap}
+@media(max-width:720px){.table-wrap{overflow-x:auto}table{min-width:700px}}
+</style></head><body><main class="container"><section class="card">
+<p><a href="home.php">Início</a> · <a class="btn" href="cadastrar_livro.php">Cadastrar livro</a></p><h1>Acervo de vendas</h1>
+<?php if (!$livros): ?><p>Nenhum livro cadastrado.</p><?php else: ?><div class="table-wrap"><table><thead><tr><th>Título</th><th>Autor</th><th>Ano</th><th>Categoria</th><th>Preço</th><th>Ações</th></tr></thead><tbody>
+<?php foreach ($livros as $livro): ?><tr>
+<td><?= h($livro['titulo']) ?></td><td><?= h($livro['autor']) ?></td><td><?= h($livro['ano'] ?? '') ?></td><td><?= h($livro['categoria'] ?? '') ?></td>
+<td><?= $livro['preco'] === null ? 'Sob consulta' : 'R$ ' . number_format((float) $livro['preco'], 2, ',', '.') ?></td>
+<td class="actions"><a class="btn" href="../actions/editar_livro.php?id=<?= (int) $livro['id'] ?>">Editar</a>
+<a class="btn del" href="../actions/deletar_livro.php?id=<?= (int) $livro['id'] ?>" onclick="return confirm('Excluir este livro?')">Excluir</a></td></tr><?php endforeach; ?>
+</tbody></table></div><?php endif; ?></section></main></body></html>

@@ -1,86 +1,41 @@
 <?php
-// salvar_emprestimo.php – dentro da pasta /actions/
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
+require_once __DIR__ . '/../config/conf.php';
 
-session_start();
-include_once "../config/conexao.php"; // Caminho correto para a conexão
-
-// Verifica se veio via POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../emprestimos.php");
+    header('Location: ../pages/emprestimos.php');
     exit;
 }
 
-// Dados enviados pelo formulário
-$livro_id         = isset($_POST['livro_id']) ? intval($_POST['livro_id']) : 0;
-$usuario_nome     = isset($_POST['usuario_nome']) ? trim($_POST['usuario_nome']) : '';
-$data_emprestimo  = isset($_POST['data_emprestimo']) ? trim($_POST['data_emprestimo']) : date('Y-m-d');
-$data_devolucao   = !empty($_POST['data_devolucao']) ? trim($_POST['data_devolucao']) : null;
-
-// Validação simples
-if ($livro_id <= 0 || empty($usuario_nome)) {
-    header("Location: ../emprestimos.php?erro=DadosInvalidos");
+$idLivro = filter_input(INPUT_POST, 'id_livro', FILTER_VALIDATE_INT);
+$idUsuario = filter_input(INPUT_POST, 'id_usuario', FILTER_VALIDATE_INT);
+if (!$idLivro || !$idUsuario) {
+    header('Location: ../pages/emprestimos.php?erro=DadosInvalidos');
     exit;
 }
 
 try {
-    // Iniciar transação
-    $conexao->begin_transaction();
-
-    // Verificar se o livro existe e tem quantidade disponível
-    $stmt = $conexao->prepare("SELECT quantidade FROM livros WHERE id = ? FOR UPDATE");
-    $stmt->bind_param("i", $livro_id);
-    $stmt->execute();
-    $res = $stmt->get_result();
-
-    if ($res->num_rows != 1) {
-        $conexao->rollback();
-        header("Location: ../emprestimos.php?erro=LivroNaoEncontrado");
+    $pdo->beginTransaction();
+    $livro = $pdo->prepare('SELECT id FROM livros WHERE id = ? FOR UPDATE');
+    $livro->execute([$idLivro]);
+    $usuario = $pdo->prepare("SELECT id FROM usuarios WHERE id = ? AND perfil = 'leitor'");
+    $usuario->execute([$idUsuario]);
+    if (!$livro->fetchColumn() || !$usuario->fetchColumn()) {
+        $pdo->rollBack();
+        header('Location: ../pages/emprestimos.php?erro=DadosInvalidos');
         exit;
     }
-
-    $livro = $res->fetch_assoc();
-
-    if ($livro['quantidade'] <= 0) {
-        $conexao->rollback();
-        header("Location: ../emprestimos.php?erro=SemDisponibilidade");
-        exit;
+    $insert = $pdo->prepare("INSERT INTO emprestimos (id_livro, id_usuario, data_emprestimo, status) VALUES (?, ?, CURRENT_DATE, 'emprestado')");
+    $insert->execute([$idLivro, $idUsuario]);
+    $pdo->prepare("UPDATE livros SET status = 'emprestado' WHERE id = ?")->execute([$idLivro]);
+    $pdo->commit();
+    header('Location: ../pages/emprestimos.php?sucesso=1');
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-
-    $stmt->close();
-
-    // Inserir o empréstimo
-    $status = "emprestado";
-
-    $query = "INSERT INTO emprestimos (livro_id, usuario_nome, data_emprestimo, data_devolucao, status)
-              VALUES (?, ?, ?, ?, ?)";
-
-    $stmt = $conexao->prepare($query);
-    $stmt->bind_param("issss", $livro_id, $usuario_nome, $data_emprestimo, $data_devolucao, $status);
-    $stmt->execute();
-    $stmt->close();
-
-    // Atualizar a quantidade de livros
-    $stmt = $conexao->prepare("UPDATE livros SET quantidade = quantidade - 1 WHERE id = ?");
-    $stmt->bind_param("i", $livro_id);
-    $stmt->execute();
-    $stmt->close();
-
-    // Confirmar transação
-    $conexao->commit();
-
-    header("Location: ../emprestimos.php?sucesso=1");
-    exit;
-
-} catch (Exception $e) {
-
-    // Caso ocorra erro, desfazer transação
-    if ($conexao->in_transaction) {
-        $conexao->rollback();
-    }
-
-    // Log interno
-    error_log("Erro ao salvar empréstimo: " . $e->getMessage());
-
-    header("Location: ../emprestimos.php?erro=1");
-    exit;
+    error_log('Falha ao registrar empréstimo.');
+    header('Location: ../pages/emprestimos.php?erro=1');
 }
+exit;

@@ -105,7 +105,7 @@ session_start();
     </form>
 
     <!-- AJUSTE AQUI 100% -->
-    <a href="cadastro_usuario.php" class="link-cadastro">Criar uma conta</a>
+    <a href="cadastro_leitor.php" class="link-cadastro">Criar conta de leitor</a>
 </div>
 
 </body>

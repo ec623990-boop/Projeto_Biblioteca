@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
+
 if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit;
@@ -25,8 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         // Inserir usuário
         $sql = $pdo->prepare("
-            INSERT INTO usuarios (nome, email, senha)
-            VALUES (?, ?, ?)
+            INSERT INTO usuarios (nome, email, senha, perfil)
+            VALUES (?, ?, ?, 'admin')
         ");
 
         if ($sql->execute([$nome, $email, $senha])) {

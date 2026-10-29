@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
 
 // Se não estiver logado, redireciona
 if (!isset($_SESSION['email'])) {
@@ -146,8 +147,8 @@ $email   = $_SESSION['email'];
 
     <div class="topbar">
         <div>
-            <strong>Bem-vindo, <?= $usuario ?> 👋</strong><br>
-            <small><?= $email ?></small>
+            <strong>Bem-vindo, <?= htmlspecialchars((string) $usuario, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?> 👋</strong><br>
+            <small><?= htmlspecialchars((string) $email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></small>
         </div>
     </div>
 

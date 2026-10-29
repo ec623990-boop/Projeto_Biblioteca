@@ -1,50 +1,32 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../config/conf.php';
 
-// Caminho ABSOLUTO para garantir que o conf.php seja encontrado
-require_once __DIR__ . "/../config/conf.php";
-
-// Verificar se a variável $conexao realmente existe
-if (!isset($conexao)) {
-    die("ERRO GRAVE: conf.php foi carregado, mas NÃO criou a variável \$conexao");
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../pages/login.php');
+    exit;
 }
 
-$email = $_POST['email'];
-$senha = $_POST['senha'];
-
-// Consulta
-$sql = "SELECT * FROM usuarios WHERE email = ?";
-$stmt = $conexao->prepare($sql);
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Verifica usuário
-if ($result->num_rows > 0) {
-    $usuario = $result->fetch_assoc();
-    
-    // Verifica senha
-    if (password_verify($senha, $usuario['senha'])) {
-        $_SESSION['email'] = $usuario['email'];
-        $_SESSION['nome']  = $usuario['nome'];
-
-        header("Location: ../pages/home.php");
-        exit;
-    }
+$email = strtolower(trim((string) ($_POST['email'] ?? '')));
+$senha = (string) ($_POST['senha'] ?? '');
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $senha === '') {
+    header('Location: ../pages/login.php?erro=1');
+    exit;
 }
 
-header("Location: ../pages/login.php?erro=1");
+$stmt = $pdo->prepare('SELECT id, nome, email, senha, perfil FROM usuarios WHERE email = ? LIMIT 1');
+$stmt->execute([$email]);
+$usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$usuario || !password_verify($senha, $usuario['senha']) || !in_array($usuario['perfil'], ['admin', 'leitor'], true)) {
+    header('Location: ../pages/login.php?erro=1');
+    exit;
+}
+
+session_regenerate_id(true);
+$_SESSION['usuario_id'] = (int) $usuario['id'];
+$_SESSION['nome'] = $usuario['nome'];
+$_SESSION['email'] = $usuario['email'];
+$_SESSION['perfil'] = $usuario['perfil'];
+
+header('Location: ' . ($usuario['perfil'] === 'admin' ? '../pages/home.php' : '../pages/catalogo_vendas.php'));
 exit;
-
-
-
-
-
-
-
-
-
-
-
-
-

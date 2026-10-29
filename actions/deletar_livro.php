@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
 // actions/deletar_livro.php
-session_start();
 
 // Verifica ID
 if (!isset($_GET['id'])) {

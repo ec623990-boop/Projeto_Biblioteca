@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
 
 // Se não estiver logado, redireciona
 if (!isset($_SESSION['email'])) {
@@ -58,7 +59,7 @@ $livros = $pdo->query("
 //  BUSCAR LISTA DE USUÁRIOS
 // ---------------------------------------------------------
 $usuarios = $pdo->query("
-    SELECT id, nome FROM usuarios ORDER BY nome ASC
+    SELECT id, nome FROM usuarios WHERE perfil = 'leitor' ORDER BY nome ASC
 ");
 
 // ---------------------------------------------------------

@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . '/../includes/auth.php';
+exigir_admin();
 // pages/painel.php
-session_start();
+
 if (!isset($_SESSION['email'])) {
     header("Location: ../pages/login.php");
     exit;
