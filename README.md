@@ -29,7 +29,7 @@ Aplicação web em PHP e MySQL/MariaDB para administrar um acervo e apresentar u
 
 1. Faça backup do banco antes de qualquer alteração.
 2. Verifique duplicatas de e-mail com a consulta comentada no início de database/migrate_catalogo_vendas.sql. Resolva eventuais duplicatas antes de continuar.
-3. Execute database/migrate_catalogo_vendas.sql uma única vez. Contas existentes recebem perfil admin para preservar o acesso atual; o preço dos livros existentes fica sem valor até a equipe preenchê-lo.
+3. Execute database/migrate_catalogo_vendas.sql uma única vez. Contas existentes recebem perfil leitor por padrão para evitar elevar permissões sem validação; o preço dos livros existentes fica sem valor até a equipe preenchê-lo. Após a migração, crie o primeiro administrador pelo script CLI. Promova contas existentes para equipe somente depois de verificar que pertencem a funcionários autorizados, usando uma atualização pontual pelo e-mail.
 4. Publique o código e revise config/conf.php no ambiente de execução.
 
 A migração SQL não pode ser executada novamente sem remover primeiro as colunas e o índice criados. Nunca rode a migração em produção sem backup.
